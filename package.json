@@ -1,0 +1,75 @@
+{
+  "_args": [
+    [
+      "cordova-plugin-themeablebrowser@0.2.18",
+      "/Users/benjamin/Desktop/git app/iproud-app-3.0"
+    ]
+  ],
+  "_from": "cordova-plugin-themeablebrowser@0.2.18",
+  "_id": "cordova-plugin-themeablebrowser@0.2.18",
+  "_inBundle": false,
+  "_integrity": "sha1-IBvfFEHJb4tovZyjOcbv18xoCbQ=",
+  "_location": "/cordova-plugin-themeablebrowser",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "cordova-plugin-themeablebrowser@0.2.18",
+    "name": "cordova-plugin-themeablebrowser",
+    "escapedName": "cordova-plugin-themeablebrowser",
+    "rawSpec": "0.2.18",
+    "saveSpec": null,
+    "fetchSpec": "0.2.18"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npm.taobao.org/cordova-plugin-themeablebrowser/download/cordova-plugin-themeablebrowser-0.2.18.tgz",
+  "_spec": "0.2.18",
+  "_where": "/Users/benjamin/Desktop/git app/iproud-app-3.0",
+  "author": {
+    "name": "Apache Software Foundation"
+  },
+  "bugs": {
+    "url": "https://github.com/benjamin0809/cordova-plugin-themeablebrowser-x/issues"
+  },
+  "cordova": {
+    "id": "cordova-plugin-themeablebrowser",
+    "platforms": [
+      "android",
+      "amazon-fireos",
+      "ubuntu",
+      "ios",
+      "wp7",
+      "wp8",
+      "windows8",
+      "windows",
+      "firefoxos"
+    ]
+  },
+  "description": "Cordova ThemeableBrowser Plugin",
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.1.0"
+    }
+  ],
+  "homepage": "https://github.com/benjamin0809/cordova-plugin-themeablebrowser-x#readme",
+  "keywords": [
+    "cordova",
+    "in",
+    "app",
+    "browser",
+    "themeablebrowser",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "license": "Apache 2.0",
+  "name": "cordova-plugin-themeablebrowser",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benjamin0809/cordova-plugin-themeablebrowser-x.git"
+  },
+  "version": "0.2.18"
+}
