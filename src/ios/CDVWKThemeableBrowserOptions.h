@@ -18,7 +18,7 @@
  */
 
 
-@interface CDVInAppBrowserOptions : NSObject {}
+@interface CDVWKThemeableBrowserOptions : NSObject {}
 
 @property (nonatomic, assign) BOOL usewkwebview;
 @property (nonatomic, assign) BOOL location;
@@ -61,6 +61,6 @@
 //@property (nonatomic) BOOL backButtonCanClose;
 //@property (nonatomic) BOOL disableAnimation;
 @property (nonatomic) BOOL fullscreen;
-+ (CDVInAppBrowserOptions*)parseOptions:(NSString*)options;
++ (CDVWKThemeableBrowserOptions*)parseOptions:(NSString*)options;
 
 @end

@@ -17,11 +17,11 @@
  under the License.
  */
 
-#import "CDVInAppBrowserNavigationController.h"
+#import "CDVWKThemeableBrowserNavigationController.h"
 
 #define    STATUSBAR_HEIGHT 20.0
 
-@implementation CDVInAppBrowserNavigationController : UINavigationController
+@implementation CDVWKThemeableBrowserNavigationController : UINavigationController
 
 - (void) dismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion {
     if ( self.presentedViewController) {

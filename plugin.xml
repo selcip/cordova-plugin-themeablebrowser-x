@@ -60,22 +60,22 @@
             <feature name="ThemeableBrowser">
                 <param name="ios-package" value="CDVThemeableBrowser" />
             </feature> 
-            <feature name="WKInAppBrowser">
-                <param name="ios-package" value="CDVWKInAppBrowser" />
+            <feature name="WKThemeableBrowser">
+                <param name="ios-package" value="CDVWKThemeableBrowser" />
                 <param name="onload" value="true" />
             </feature>
         </config-file>
 
         <header-file src="src/ios/CDVThemeableBrowser.h" />
         <source-file src="src/ios/CDVThemeableBrowser.m" /> 
-        <header-file src="src/ios/CDVInAppBrowserOptions.h" />
-        <source-file src="src/ios/CDVInAppBrowserOptions.m" />
-        <header-file src="src/ios/CDVInAppBrowserNavigationController.h" />
-        <source-file src="src/ios/CDVInAppBrowserNavigationController.m" /> 
-	    <header-file src="src/ios/CDVWKInAppBrowser.h" />
-	    <source-file src="src/ios/CDVWKInAppBrowser.m" />
-	    <header-file src="src/ios/CDVWKInAppBrowserUIDelegate.h" />
-	    <source-file src="src/ios/CDVWKInAppBrowserUIDelegate.m" />
+        <header-file src="src/ios/CDVWKThemeableBrowserOptions.h" />
+        <source-file src="src/ios/CDVWKThemeableBrowserOptions.m" />
+        <header-file src="src/ios/CDVWKThemeableBrowserNavigationController.h" />
+        <source-file src="src/ios/CDVWKThemeableBrowserNavigationController.m" /> 
+	    <header-file src="src/ios/CDVWKThemeableBrowser.h" />
+	    <source-file src="src/ios/CDVWKThemeableBrowser.m" />
+	    <header-file src="src/ios/CDVWKThemeableBrowserUIDelegate.h" />
+	    <source-file src="src/ios/CDVWKThemeableBrowserUIDelegate.m" />
 
         <framework src="CoreGraphics.framework" />
     </platform>

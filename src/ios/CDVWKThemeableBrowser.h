@@ -20,13 +20,13 @@
 #import <Cordova/CDVPlugin.h>
 #import <Cordova/CDVInvokedUrlCommand.h>
 #import <Cordova/CDVScreenOrientationDelegate.h>
-#import "CDVWKInAppBrowserUIDelegate.h"
-#import "CDVInAppBrowserOptions.h"
-#import "CDVInAppBrowserNavigationController.h"
+#import "CDVWKThemeableBrowserUIDelegate.h"
+#import "CDVWKThemeableBrowserOptions.h"
+#import "CDVWKThemeableBrowserNavigationController.h"
 
-@class CDVWKInAppBrowserViewController;
+@class CDVWKThemeableBrowserViewController;
 
-@interface CDVWKInAppBrowser : CDVPlugin {
+@interface CDVWKThemeableBrowser : CDVPlugin {
     UIWindow * tmpWindow;
 
     @private
@@ -34,8 +34,8 @@
     BOOL _waitForBeforeload;
 }
 
-@property (nonatomic, retain) CDVWKInAppBrowser* instance;
-@property (nonatomic, retain) CDVWKInAppBrowserViewController* inAppBrowserViewController;
+@property (nonatomic, retain) CDVWKThemeableBrowser* instance;
+@property (nonatomic, retain) CDVWKThemeableBrowserViewController* themeBrowserViewController;
 @property (nonatomic, copy) NSString* callbackId;
 @property (nonatomic, copy) NSRegularExpression *callbackIdPattern;
 
@@ -45,16 +45,17 @@
 - (void)injectScriptCode:(CDVInvokedUrlCommand*)command;
 - (void)show:(CDVInvokedUrlCommand*)command;
 - (void)hide:(CDVInvokedUrlCommand*)command;
+- (void)reload:(CDVInvokedUrlCommand*)command;
 - (void)loadAfterBeforeload:(CDVInvokedUrlCommand*)command;
 
 @end
 
-@interface CDVWKInAppBrowserViewController : UIViewController <CDVScreenOrientationDelegate,WKNavigationDelegate,WKUIDelegate,WKScriptMessageHandler>{
+@interface CDVWKThemeableBrowserViewController : UIViewController <CDVScreenOrientationDelegate,WKNavigationDelegate,WKUIDelegate,WKScriptMessageHandler>{
     @private
     NSString* _userAgent;
     NSString* _prevUserAgent;
     NSInteger _userAgentLockToken;
-    CDVInAppBrowserOptions *_browserOptions;
+    CDVWKThemeableBrowserOptions *_browserOptions;
 }
 
 @property (nonatomic, strong) IBOutlet WKWebView* webView;
@@ -72,22 +73,22 @@
 @property (nonatomic, strong) IBOutlet UIActivityIndicatorView* spinner;
 @property (nonatomic, strong) IBOutlet UIProgressView* progressView;
 @property (nonatomic, strong) IBOutlet UIToolbar* toolbar;
-@property (nonatomic, strong) IBOutlet CDVWKInAppBrowserUIDelegate* webViewUIDelegate;
+@property (nonatomic, strong) IBOutlet CDVWKThemeableBrowserUIDelegate* webViewUIDelegate;
 
 @property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
-@property (nonatomic, weak) CDVWKInAppBrowser* navigationDelegate;
+@property (nonatomic, weak) CDVWKThemeableBrowser* navigationDelegate;
 @property (nonatomic) CGFloat titleOffset;
 @property (nonatomic) NSURL* currentURL;
 @property (nonatomic) NSString* currentTitle; //add current title by zhaogx 2018-12-17
 @property (nonatomic) BOOL isDismiss;
-@property (nonatomic , readonly , getter=loadProgress) CGFloat currentProgress;
 
 - (void)close;
+- (void)reload;
 - (void)navigateTo:(NSURL*)url;
 - (void)showLocationBar:(BOOL)show;
 - (void)showToolBar:(BOOL)show : (NSString *) toolbarPosition;
 - (void)setCloseButtonTitle:(NSString*)title : (NSString*) colorString : (int) buttonIndex;
 
-- (id)initWithUserAgent:(NSString*)userAgent prevUserAgent:(NSString*)prevUserAgent browserOptions: (CDVInAppBrowserOptions*) browserOptions;
+- (id)initWithUserAgent:(NSString*)userAgent prevUserAgent:(NSString*)prevUserAgent browserOptions: (CDVWKThemeableBrowserOptions*) browserOptions;
 
 @end

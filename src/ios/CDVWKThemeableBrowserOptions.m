@@ -17,9 +17,9 @@
  under the License.
  */
 
-#import "CDVInAppBrowserOptions.h"
+#import "CDVWKThemeableBrowserOptions.h"
 
-@implementation CDVInAppBrowserOptions
+@implementation CDVWKThemeableBrowserOptions
 
 - (id)init
 {
@@ -60,9 +60,9 @@
     return self;
 }
 
-+ (CDVInAppBrowserOptions*)parseOptions:(NSString*)options
++ (CDVWKThemeableBrowserOptions*)parseOptions:(NSString*)options
 {
-    CDVInAppBrowserOptions* obj = [[CDVInAppBrowserOptions alloc] init];
+    CDVWKThemeableBrowserOptions* obj = [[CDVWKThemeableBrowserOptions alloc] init];
 
     if (options && [options length] > 0) {
           // Min support, iOS 5. We will use the JSON parser that comes with iOS

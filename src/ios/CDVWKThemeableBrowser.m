@@ -17,7 +17,7 @@
  under the License.
  */
 
-#import "CDVWKInAppBrowser.h"
+#import "CDVWKThemeableBrowser.h"
 
 #if __has_include("CDVWKProcessPoolFactory.h")
 #import "CDVWKProcessPoolFactory.h"
@@ -75,20 +75,16 @@
 
 #define iPhoneX (SCREEN_HEIGHT >= 812)
 
-const float MyInitialProgressValue = 0.1f;
-const float MyInteractiveProgressValue = 0.5f;
-const float MyFinalProgressValue = 0.9f;
+#pragma mark CDVWKThemeableBrowser
 
-#pragma mark CDVWKInAppBrowser
-
-@interface CDVWKInAppBrowser () {
+@interface CDVWKThemeableBrowser () {
     NSInteger _previousStatusBarStyle;
 }
 @end
 
-@implementation CDVWKInAppBrowser
+@implementation CDVWKThemeableBrowser
 
-static CDVWKInAppBrowser* instance = nil;
+static CDVWKThemeableBrowser* instance = nil;
 
 
 + (id) getInstance{
@@ -116,13 +112,13 @@ static CDVWKInAppBrowser* instance = nil;
 
 - (void)close:(CDVInvokedUrlCommand*)command
 {
-    if (self.inAppBrowserViewController == nil) {
+    if (self.themeBrowserViewController == nil) {
         NSLog(@"IAB.close() called but it was already closed.");
         return;
     }
     
     // Things are cleaned up in browserExit.
-    [self.inAppBrowserViewController close];
+    [self.themeBrowserViewController close];
 }
 
 - (BOOL) isSystemUrl:(NSURL*)url
@@ -134,6 +130,13 @@ static CDVWKInAppBrowser* instance = nil;
     return NO;
 }
 
+- (void)reload:(CDVInvokedUrlCommand*)command
+{
+    if (self.themeBrowserViewController) {
+        [self.themeBrowserViewController reload];
+    }
+    
+}
 - (void)open:(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* pluginResult;
@@ -175,7 +178,7 @@ static CDVWKInAppBrowser* instance = nil;
 
 - (void)openInInAppBrowser:(NSURL*)url withOptions:(NSString*)options
 {
-    CDVInAppBrowserOptions* browserOptions = [CDVInAppBrowserOptions parseOptions:options];
+    CDVWKThemeableBrowserOptions* browserOptions = [CDVWKThemeableBrowserOptions parseOptions:options];
     
     WKWebsiteDataStore* dataStore = [WKWebsiteDataStore defaultDataStore];
     if (browserOptions.cleardata) {
@@ -183,7 +186,7 @@ static CDVWKInAppBrowser* instance = nil;
         NSDate* dateFrom = [NSDate dateWithTimeIntervalSince1970:0];
         [dataStore removeDataOfTypes:[WKWebsiteDataStore allWebsiteDataTypes] modifiedSince:dateFrom completionHandler:^{
             NSLog(@"Removed all WKWebView data");
-            self.inAppBrowserViewController.webView.configuration.processPool = [[WKProcessPool alloc] init]; // create new process pool to flush all data
+            self.themeBrowserViewController.webView.configuration.processPool = [[WKProcessPool alloc] init]; // create new process pool to flush all data
         }];
     }
     
@@ -248,7 +251,7 @@ static CDVWKInAppBrowser* instance = nil;
         }
     }
 
-    if (self.inAppBrowserViewController == nil) {
+    if (self.themeBrowserViewController == nil) {
         NSString* userAgent = [CDVUserAgentUtil originalUserAgent];
         NSString* overrideUserAgent = [self settingForKey:@"OverrideUserAgent"];
         NSString* appendUserAgent = [self settingForKey:@"AppendUserAgent"];
@@ -258,19 +261,21 @@ static CDVWKInAppBrowser* instance = nil;
         if(appendUserAgent){
             userAgent = [userAgent stringByAppendingString: appendUserAgent];
         }
-        self.inAppBrowserViewController = [[CDVWKInAppBrowserViewController alloc] initWithUserAgent:userAgent prevUserAgent:[self.commandDelegate userAgent] browserOptions: browserOptions];
-        self.inAppBrowserViewController.navigationDelegate = self;
+        userAgent = [userAgent stringByAppendingString: @" app/iproud"];
+        
+        self.themeBrowserViewController = [[CDVWKThemeableBrowserViewController alloc] initWithUserAgent:userAgent prevUserAgent:[self.commandDelegate userAgent] browserOptions: browserOptions];
+        self.themeBrowserViewController.navigationDelegate = self;
         
         if ([self.viewController conformsToProtocol:@protocol(CDVScreenOrientationDelegate)]) {
-            self.inAppBrowserViewController.orientationDelegate = (UIViewController <CDVScreenOrientationDelegate>*)self.viewController;
+            self.themeBrowserViewController.orientationDelegate = (UIViewController <CDVScreenOrientationDelegate>*)self.viewController;
         }
     }
     
-    [self.inAppBrowserViewController showLocationBar:browserOptions.location];
-    [self.inAppBrowserViewController showToolBar:browserOptions.toolbar :browserOptions.toolbarposition];
+    [self.themeBrowserViewController showLocationBar:browserOptions.location];
+    [self.themeBrowserViewController showToolBar:browserOptions.toolbar :browserOptions.toolbarposition];
     if (browserOptions.closebuttoncaption != nil || browserOptions.closebuttoncolor != nil) {
         int closeButtonIndex = browserOptions.lefttoright ? (browserOptions.hidenavigationbuttons ? 1 : 4) : 0;
-        [self.inAppBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption :browserOptions.closebuttoncolor :closeButtonIndex];
+        [self.themeBrowserViewController setCloseButtonTitle:browserOptions.closebuttoncaption :browserOptions.closebuttoncolor :closeButtonIndex];
     }
     // Set Presentation Style
     UIModalPresentationStyle presentationStyle = UIModalPresentationFullScreen; // default
@@ -281,7 +286,7 @@ static CDVWKInAppBrowser* instance = nil;
             presentationStyle = UIModalPresentationFormSheet;
         }
     }
-    self.inAppBrowserViewController.modalPresentationStyle = presentationStyle;
+    self.themeBrowserViewController.modalPresentationStyle = presentationStyle;
     
     // Set Transition Style
     UIModalTransitionStyle transitionStyle = UIModalTransitionStyleCoverVertical; // default
@@ -292,14 +297,14 @@ static CDVWKInAppBrowser* instance = nil;
             transitionStyle = UIModalTransitionStyleCrossDissolve;
         }
     }
-    self.inAppBrowserViewController.modalTransitionStyle = transitionStyle;
+    self.themeBrowserViewController.modalTransitionStyle = transitionStyle;
     
     //prevent webView from bouncing
     if (browserOptions.disallowoverscroll) {
-        if ([self.inAppBrowserViewController.webView respondsToSelector:@selector(scrollView)]) {
-            ((UIScrollView*)[self.inAppBrowserViewController.webView scrollView]).bounces = NO;
+        if ([self.themeBrowserViewController.webView respondsToSelector:@selector(scrollView)]) {
+            ((UIScrollView*)[self.themeBrowserViewController.webView scrollView]).bounces = NO;
         } else {
-            for (id subview in self.inAppBrowserViewController.webView.subviews) {
+            for (id subview in self.themeBrowserViewController.webView.subviews) {
                 if ([[subview class] isSubclassOfClass:[UIScrollView class]]) {
                     ((UIScrollView*)subview).bounces = NO;
                 }
@@ -315,7 +320,7 @@ static CDVWKInAppBrowser* instance = nil;
     }
     _waitForBeforeload = ![_beforeload isEqualToString:@""];
     
-    [self.inAppBrowserViewController navigateTo:url];
+    [self.themeBrowserViewController navigateTo:url];
     if (!browserOptions.hidden) {
         [self show:nil withNoAnimate:browserOptions.hidden];
     }
@@ -332,7 +337,7 @@ static CDVWKInAppBrowser* instance = nil;
         initHidden = YES;
     }
     
-    if (self.inAppBrowserViewController == nil) {
+    if (self.themeBrowserViewController == nil) {
         NSLog(@"Tried to show IAB after it was closed.");
         return;
     }
@@ -345,17 +350,17 @@ static CDVWKInAppBrowser* instance = nil;
         _previousStatusBarStyle = [UIApplication sharedApplication].statusBarStyle;
     }
     
-    __block CDVInAppBrowserNavigationController* nav = [[CDVInAppBrowserNavigationController alloc]
-                                                        initWithRootViewController:self.inAppBrowserViewController];
-    nav.orientationDelegate = self.inAppBrowserViewController;
+    __block CDVWKThemeableBrowserNavigationController* nav = [[CDVWKThemeableBrowserNavigationController alloc]
+                                                        initWithRootViewController:self.themeBrowserViewController];
+    nav.orientationDelegate = self.themeBrowserViewController;
     nav.navigationBarHidden = YES;
-    nav.modalPresentationStyle = self.inAppBrowserViewController.modalPresentationStyle;
+    nav.modalPresentationStyle = self.themeBrowserViewController.modalPresentationStyle;
     
-    __weak CDVWKInAppBrowser* weakSelf = self;
+    __weak CDVWKThemeableBrowser* weakSelf = self;
     
     // Run later to avoid the "took a long time" log message.
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (weakSelf.inAppBrowserViewController != nil) {
+        if (weakSelf.themeBrowserViewController != nil) {
             float osVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
             __strong __typeof(weakSelf) strongSelf = weakSelf;
             if (!strongSelf->tmpWindow) {
@@ -384,7 +389,7 @@ static CDVWKInAppBrowser* instance = nil;
     // https://stackoverflow.com/questions/4544489/how-to-remove-a-uiwindow
     self->tmpWindow.hidden = YES;
 
-    if (self.inAppBrowserViewController == nil) {
+    if (self.themeBrowserViewController == nil) {
         NSLog(@"Tried to hide IAB after it was closed.");
         return;
         
@@ -399,9 +404,9 @@ static CDVWKInAppBrowser* instance = nil;
     
     // Run later to avoid the "took a long time" log message.
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (self.inAppBrowserViewController != nil) {
+        if (self.themeBrowserViewController != nil) {
             _previousStatusBarStyle = -1;
-            [self.inAppBrowserViewController.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+            [self.themeBrowserViewController.presentingViewController dismissViewControllerAnimated:YES completion:nil];
         }
     });
 }
@@ -426,7 +431,7 @@ static CDVWKInAppBrowser* instance = nil;
 - (void)openInSystem:(NSURL*)url
 {
     [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:CDVPluginHandleOpenURLNotification object:url]];
-    [[UIApplication sharedApplication] openURL:url];
+    [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
 }
 
 - (void)loadAfterBeforeload:(CDVInvokedUrlCommand*)command
@@ -436,7 +441,7 @@ static CDVWKInAppBrowser* instance = nil;
     if ([_beforeload isEqualToString:@""]) {
         NSLog(@"unexpected loadAfterBeforeload called without feature beforeload=get|post");
     }
-    if (self.inAppBrowserViewController == nil) {
+    if (self.themeBrowserViewController == nil) {
         NSLog(@"Tried to invoke loadAfterBeforeload on IAB after it was closed.");
         return;
     }
@@ -448,7 +453,7 @@ static CDVWKInAppBrowser* instance = nil;
     NSURL* url = [NSURL URLWithString:urlStr];
     //_beforeload = @"";
     _waitForBeforeload = NO;
-    [self.inAppBrowserViewController navigateTo:url];
+    [self.themeBrowserViewController navigateTo:url];
 }
 
 // This is a helper method for the inject{Script|Style}{Code|File} API calls, which
@@ -462,7 +467,7 @@ static CDVWKInAppBrowser* instance = nil;
 
 - (void)injectDeferredObject:(NSString*)source withWrapper:(NSString*)jsWrapper
 {
-    // Ensure a message handler bridge is created to communicate with the CDVWKInAppBrowserViewController
+    // Ensure a message handler bridge is created to communicate with the CDVWKThemeableBrowserViewController
     [self evaluateJavaScript: [NSString stringWithFormat:@"(function(w){if(!w._cdvMessageHandler) {w._cdvMessageHandler = function(id,d){w.webkit.messageHandlers.%@.postMessage({d:d, id:id});}}})(window)", IAB_BRIDGE_NAME]];
     
     if (jsWrapper != nil) {
@@ -482,7 +487,7 @@ static CDVWKInAppBrowser* instance = nil;
 //Synchronus helper for javascript evaluation
 - (void)evaluateJavaScript:(NSString *)script {
     __block NSString* _script = script;
-    [self.inAppBrowserViewController.webView evaluateJavaScript:script completionHandler:^(id result, NSError *error) {
+    [self.themeBrowserViewController.webView evaluateJavaScript:script completionHandler:^(id result, NSError *error) {
         if (error == nil) {
             if (result != nil) {
                 NSLog(@"%@", result);
@@ -596,7 +601,7 @@ static CDVWKInAppBrowser* instance = nil;
     }
     
     if(errorMessage != nil){
-        NSLog(errorMessage);
+        NSLog(@"%@", errorMessage);
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                                       messageAsDictionary:@{@"type":@"loaderror", @"url":[url absoluteString], @"code": @"-1", @"message": errorMessage}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -677,7 +682,7 @@ static CDVWKInAppBrowser* instance = nil;
 - (void)didStartProvisionalNavigation:(WKWebView*)theWebView
 {
     NSLog(@"didStartProvisionalNavigation");
-//    self.inAppBrowserViewController.currentURL = theWebView.URL;
+//    self.themeBrowserViewController.currentURL = theWebView.URL;
 }
 
 - (void)didFinishNavigation:(WKWebView*)theWebView
@@ -685,8 +690,8 @@ static CDVWKInAppBrowser* instance = nil;
     if (self.callbackId != nil) {
         NSString* url = [theWebView.URL absoluteString];
         if(url == nil){
-            if(self.inAppBrowserViewController.currentURL != nil){
-                url = [self.inAppBrowserViewController.currentURL absoluteString];
+            if(self.themeBrowserViewController.currentURL != nil){
+                url = [self.themeBrowserViewController.currentURL absoluteString];
             }else{
                 url = @"";
             }
@@ -704,8 +709,8 @@ static CDVWKInAppBrowser* instance = nil;
     if (self.callbackId != nil) {
         NSString* url = [theWebView.URL absoluteString];
         if(url == nil){
-            if(self.inAppBrowserViewController.currentURL != nil){
-                url = [self.inAppBrowserViewController.currentURL absoluteString];
+            if(self.themeBrowserViewController.currentURL != nil){
+                url = [self.themeBrowserViewController.currentURL absoluteString];
             }else{
                 url = @"";
             }
@@ -727,18 +732,18 @@ static CDVWKInAppBrowser* instance = nil;
         self.callbackId = nil;
     }
     
-    [self.inAppBrowserViewController.configuration.userContentController removeScriptMessageHandlerForName:IAB_BRIDGE_NAME];
-    self.inAppBrowserViewController.configuration = nil;
+    [self.themeBrowserViewController.configuration.userContentController removeScriptMessageHandlerForName:IAB_BRIDGE_NAME];
+    self.themeBrowserViewController.configuration = nil;
     
-    [self.inAppBrowserViewController.webView stopLoading];
-    [self.inAppBrowserViewController.webView removeFromSuperview];
-    [self.inAppBrowserViewController.webView setUIDelegate:nil];
-    [self.inAppBrowserViewController.webView setNavigationDelegate:nil];
-    self.inAppBrowserViewController.webView = nil;
+    [self.themeBrowserViewController.webView stopLoading];
+    [self.themeBrowserViewController.webView removeFromSuperview];
+    [self.themeBrowserViewController.webView setUIDelegate:nil];
+    [self.themeBrowserViewController.webView setNavigationDelegate:nil];
+    self.themeBrowserViewController.webView = nil;
     
     // Set navigationDelegate to nil to ensure no callbacks are received from it.
-    self.inAppBrowserViewController.navigationDelegate = nil;
-    self.inAppBrowserViewController = nil;
+    self.themeBrowserViewController.navigationDelegate = nil;
+    self.themeBrowserViewController = nil;
 
     // Set tmpWindow to hidden to make main webview responsive to touch again
     // Based on https://stackoverflow.com/questions/4544489/how-to-remove-a-uiwindow
@@ -788,11 +793,11 @@ static CDVWKInAppBrowser* instance = nil;
     [self emitEvent:event];
 }
 
-@end //CDVWKInAppBrowser
+@end //CDVWKThemeableBrowser
 
-#pragma mark CDVWKInAppBrowserViewController
+#pragma mark CDVWKThemeableBrowserViewController
 
-@implementation CDVWKInAppBrowserViewController
+@implementation CDVWKThemeableBrowserViewController
 {
     NSUInteger loadingCount;
     NSUInteger maxLoadCount;
@@ -807,11 +812,6 @@ static CDVWKInAppBrowser* instance = nil;
      */
     NSString *currentTitle;
     
-    /**
-     *  当前加载的进度
-     */
-    CGFloat currentLoadProgress;
-    
     BOOL interactive;
 }
 @synthesize currentURL;
@@ -821,18 +821,16 @@ BOOL viewRenderedAtLeastOnce = FALSE;
 BOOL isExiting = FALSE;
 BOOL isDismiss = NO;
 
-- (id)initWithUserAgent:(NSString*)userAgent prevUserAgent:(NSString*)prevUserAgent browserOptions: (CDVInAppBrowserOptions*) browserOptions
+- (id)initWithUserAgent:(NSString*)userAgent prevUserAgent:(NSString*)prevUserAgent browserOptions: (CDVWKThemeableBrowserOptions*) browserOptions
 {
     self = [super init];
     if (self != nil) {
         _userAgent = userAgent;
         _prevUserAgent = prevUserAgent;
         _browserOptions = browserOptions;
-        self.webViewUIDelegate = [[CDVWKInAppBrowserUIDelegate alloc] initWithTitle:[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"]];
+        self.webViewUIDelegate = [[CDVWKThemeableBrowserUIDelegate alloc] initWithTitle:[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"]];
         [self.webViewUIDelegate setViewController:self];
         
-        //默认值currentLoadProgress = 99;
-               currentLoadProgress = 99;
         [self createViews];
     }
     
@@ -841,6 +839,7 @@ BOOL isDismiss = NO;
 
 -(void)dealloc {
     //NSLog(@"dealloc");
+     [self.webView removeObserver:self forKeyPath:@"estimatedProgress"];
 }
 
 - (void)createViews
@@ -902,6 +901,8 @@ BOOL isDismiss = NO;
     self.webView.allowsLinkPreview = NO;
     self.webView.allowsBackForwardNavigationGestures = YES;
     
+    [self.webView addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:nil];
+    
     self.backButton = [self createButton:_browserOptions.backButton action:@selector(goBack:) withDescription:@"back button"];
     self.closeButton = [self createButton:_browserOptions.closeButton action:@selector(close) withDescription:@"close button"];
     self.menuButton = [self createButton:_browserOptions.menu action:@selector(goMenu:) withDescription:@"menu button"];
@@ -951,7 +952,7 @@ BOOL isDismiss = NO;
     self.toolbar.opaque = NO;
     self.toolbar.userInteractionEnabled = YES;
     
-    UIColor *toolbal_bg = [CDVWKInAppBrowserViewController colorFromRGBA:[self getStringFromDict:toolbarProps withKey:kThemeableBrowserPropColor withDefault:@"#ffffffff"]];
+    UIColor *toolbal_bg = [CDVWKThemeableBrowserViewController colorFromRGBA:[self getStringFromDict:toolbarProps withKey:kThemeableBrowserPropColor withDefault:@"#ffffffff"]];
     self.toolbar.backgroundColor = toolbal_bg;
     if (toolbarProps[kThemeableBrowserPropImage] || toolbarProps[kThemeableBrowserPropWwwImage]) {
         UIImage *image = [self getImage:toolbarProps[kThemeableBrowserPropImage]
@@ -968,37 +969,6 @@ BOOL isDismiss = NO;
         }
     }
     
-    self.titleOffset = fmaxf(leftWidth, rightWidth);
-    // The correct positioning of title is not that important right now, since
-    // rePositionViews will take care of it a bit later.
-    self.titleLabel = nil;
-    
-    if (_browserOptions.title) {
-        self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 0, 10, toolbarHeight)];
-        self.titleLabel.textAlignment = NSTextAlignmentCenter;
-        self.titleLabel.numberOfLines = 1;
-        self.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-        UIColor *textColor = [CDVWKInAppBrowserViewController colorFromRGBA:[self getStringFromDict:_browserOptions.title withKey:kThemeableBrowserPropColor withDefault:@"#000000ff"]];
-        self.titleLabel.textColor = textColor;
-        
-        if (_browserOptions.title[kThemeableBrowserPropStaticText]) {
-            self.titleLabel.text = _browserOptions.title[kThemeableBrowserPropStaticText];
-        }
-        if (_browserOptions.title[kThemeableBrowserPropSize]) {
-            CGFloat textSize = [self getFloatFromDict:_browserOptions.title withKey:kThemeableBrowserPropSize withDefault:19.0];
-            self.titleLabel.font = [UIFont boldSystemFontOfSize:textSize];
-        }
-        [self.toolbar addSubview:self.titleLabel];
-    }
-    
-    self.progressView = [[UIProgressView   alloc] initWithFrame:CGRectMake(0.0, toolbarY+ toolbarHeight+[self getStatusBarOffset], self.view.bounds.size.width, 20.0)];
-      self.progressView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-      self.progressView.progressViewStyle=UIProgressViewStyleDefault;
-      self.progressView.progressTintColor=[CDVWKInAppBrowserViewController colorFromRGBA:[self getStringFromDict:_browserOptions.browserProgress withKey: kThemeableBrowserPropProgressColor withDefault:@"#0000FF"]];
-      self.progressView.trackTintColor=[CDVWKInAppBrowserViewController colorFromRGBA:[self getStringFromDict:_browserOptions.browserProgress withKey:kThemeableBrowserPropProgressBgColor withDefault:@"#808080"]];
-//      if ([self getBoolFromDict:_browserOptions.browserProgress withKey:kThemeableBrowserPropShowProgress]) {
-//          [self.view addSubview:self.progressView];
-//      }
     
     CGFloat labelInset = 5.0;
     float locationBarY = toolbarIsAtBottom ? self.view.bounds.size.height - FOOTER_HEIGHT : self.view.bounds.size.height - LOCATIONBAR_HEIGHT;
@@ -1081,8 +1051,41 @@ BOOL isDismiss = NO;
 
     [self layoutButtons];
     
-    self.view.backgroundColor = [CDVWKInAppBrowserViewController colorFromRGBA:[self getStringFromDict:_browserOptions.statusbar withKey:kThemeableBrowserPropColor withDefault:@"#ffffffff"]];
-    //self.view.backgroundColor = [UIColor whiteColor];
+
+    self.titleOffset = fmaxf(leftWidth, rightWidth);
+    // The correct positioning of title is not that important right now, since
+    // rePositionViews will take care of it a bit later.
+    self.titleLabel = nil;
+    
+    if (_browserOptions.title) {
+        self.titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 0, 10, toolbarHeight)];
+        self.titleLabel.textAlignment = NSTextAlignmentCenter;
+        self.titleLabel.numberOfLines = 1;
+        self.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+        UIColor *textColor = [CDVWKThemeableBrowserViewController colorFromRGBA:[self getStringFromDict:_browserOptions.title withKey:kThemeableBrowserPropColor withDefault:@"#000000ff"]];
+        self.titleLabel.textColor = textColor;
+        
+        if (_browserOptions.title[kThemeableBrowserPropStaticText]) {
+            self.titleLabel.text = _browserOptions.title[kThemeableBrowserPropStaticText];
+        }
+        if (_browserOptions.title[kThemeableBrowserPropSize]) {
+            CGFloat textSize = [self getFloatFromDict:_browserOptions.title withKey:kThemeableBrowserPropSize withDefault:19.0];
+            self.titleLabel.font = [UIFont boldSystemFontOfSize:textSize];
+        }
+        [self.toolbar addSubview:self.titleLabel];
+    }
+    
+    self.progressView = [[UIProgressView   alloc] initWithFrame:CGRectMake(0.0, toolbarY+ toolbarHeight+[self getStatusBarOffset], self.view.bounds.size.width, 20.0)];
+      self.progressView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+      self.progressView.progressViewStyle=UIProgressViewStyleDefault;
+      self.progressView.progressTintColor=[CDVWKThemeableBrowserViewController colorFromRGBA:[self getStringFromDict:_browserOptions.browserProgress withKey: kThemeableBrowserPropProgressColor withDefault:@"#0000FF"]];
+      self.progressView.trackTintColor=[CDVWKThemeableBrowserViewController colorFromRGBA:[self getStringFromDict:_browserOptions.browserProgress withKey:kThemeableBrowserPropProgressBgColor withDefault:@"#808080"]];
+      if ([self getBoolFromDict:_browserOptions.browserProgress withKey:kThemeableBrowserPropShowProgress]) {
+          [self.view addSubview:self.progressView];
+      }
+    
+    self.view.backgroundColor = [CDVWKThemeableBrowserViewController colorFromRGBA:[self getStringFromDict:_browserOptions.statusbar withKey:kThemeableBrowserPropColor withDefault:@"#ffffffff"]];
+    
     [self.view addSubview:self.toolbar];
     //[self.view addSubview:self.addressLabel];
     // [self.view addSubview:self.spinner];
@@ -1248,6 +1251,16 @@ BOOL isDismiss = NO;
 {
     viewRenderedAtLeastOnce = FALSE;
     [super viewDidLoad];
+//    self.progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0, 64, [[UIScreen mainScreen] bounds].size.width, 2)];
+//    self.progressView.backgroundColor = [UIColor blueColor];
+//    //设置进度条的高度，下面这句代码表示进度条的宽度变为原来的1倍，高度变为原来的1.5倍.
+//    self.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.5f);
+//    [self.view addSubview:self.progressView];
+//
+//    /*
+//     *3.添加KVO，WKWebView有一个属性estimatedProgress，就是当前网页加载的进度，所以监听这个属性。
+//     */
+//    [self.webview addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:nil];
 }
 
 - (void)viewDidDisappear:(BOOL)animated
@@ -1266,6 +1279,11 @@ BOOL isDismiss = NO;
 
 - (BOOL)prefersStatusBarHidden {
     return NO;
+}
+
+- (void)reload
+{
+    [self.webView reload];
 }
 
 - (void)close
@@ -1293,7 +1311,7 @@ BOOL isDismiss = NO;
     if (_userAgentLockToken != 0) {
         [self.webView loadRequest:request];
     } else {
-        __weak CDVWKInAppBrowserViewController* weakSelf = self;
+        __weak CDVWKThemeableBrowserViewController* weakSelf = self;
         [CDVUserAgentUtil acquireLock:^(NSInteger lockToken) {
             _userAgentLockToken = lockToken;
             [CDVUserAgentUtil setUserAgent:_userAgent lockToken:lockToken];
@@ -1330,7 +1348,7 @@ BOOL isDismiss = NO;
         if (event) {
             NSMutableDictionary* dict = [NSMutableDictionary new];
             [dict setObject:event forKey:@"type"];
-            [dict setObject:[self.navigationDelegate.inAppBrowserViewController.currentURL absoluteString] forKey:@"url"];
+            [dict setObject:[self.navigationDelegate.themeBrowserViewController.currentURL absoluteString] forKey:@"url"];
 
             if (index) {
                 [dict setObject:index forKey:@"index"];
@@ -1647,6 +1665,12 @@ BOOL isDismiss = NO;
     // self.backButton.enabled = theWebView.canGoBack; anytime backButton is enabled modifed by zhaogx 2019/12/5
     // self.forwardButton.enabled = theWebView.canGoForward;
     
+    self.progressView.hidden = NO;
+    //开始加载网页的时候将progressView的Height恢复为1.5倍
+    self.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.0f);
+    //防止progressView被网页挡住
+    [self.view bringSubviewToFront:self.progressView];
+    
     NSLog(_browserOptions.hidespinner ? @"Yes" : @"No");
     if(!_browserOptions.hidespinner) {
         [self.spinner startAnimating];
@@ -1684,7 +1708,7 @@ BOOL isDismiss = NO;
         // Update title text to page title when title is shown and we are not
         // required to show a static text.
         [self.webView evaluateJavaScript:@"document.title" completionHandler:^(id object, NSError * error) {
-            NSLog(@"document.title");
+            self.titleLabel.text = object;
         }];
     }
     
@@ -1726,6 +1750,7 @@ BOOL isDismiss = NO;
 
 - (void)webView:(WKWebView*)theWebView didFailNavigation:(null_unspecified WKNavigation *)navigation withError:(nonnull NSError *)error
 {
+     [self.webView removeObserver:self forKeyPath:@"estimatedProgress"];
     [self webView:theWebView failedNavigation:@"didFailNavigation" withError:error];
 }
     
@@ -1734,129 +1759,24 @@ BOOL isDismiss = NO;
     [self webView:theWebView failedNavigation:@"didFailProvisionalNavigation" withError:error];
 }
 
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"estimatedProgress"]) {
+        self.progressView.progress = self.webView.estimatedProgress;
+        if (self.progressView.progress == 1) {
+            /*
+             *添加一个简单的动画，将progressView的Height变为1.4倍，在开始加载网页的代理中会恢复为1.5倍
+             *动画时长0.25s，延时0.3s后开始动画
+             *动画结束后将progressView隐藏
+             */
+            [UIView animateWithDuration:0.25f delay:0.3f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                self.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.0f);
+            } completion:^(BOOL finished) {
+                self.progressView.hidden = YES;
 
-NSTimer* _timer;
-static NSTimeInterval const progressInterval = 0.05;
-float increament = 0.02;
-
-/**
- *  进度结果处理 -- 阀门掌控、数据委托
- *
- *  @param progress 进度值
- *  @param webView  当前使用的webView
- */
--(void)setprogress:(CGFloat)progress webView:(WKWebView *)webView
-{
-    
-    if (progress == 0 && (currentLoadProgress == 1 || currentLoadProgress == 99))
-    {
-        //新的开始标记
-        currentLoadProgress = progress;
-        [self.progressView setProgress:progress animated:YES];
-        
-    }
-    else
-    {
-        if (progress > currentLoadProgress)
-        {
-            currentLoadProgress = progress;
-            [self.progressView setProgress:progress animated:YES];
+            }];
         }
-    }
-}
-
-- (void) hideAndResetProgress
-{
-    [self.progressView setHidden:YES];
-    [self.progressView setProgress:0 animated:NO];
-}
-
-/**
- *  重置
- */
-- (void)reset:(WKWebView *)webView
-{
-    maxLoadCount = loadingCount = 0;
-    interactive = NO;
-    increament = 0.02;
-    currentLoadProgress = 0;
-    [self.progressView setHidden:NO];
-    [self setprogress:0.0 webView:webView];
-    [self startProgress: webView];
-    [self incrementProgress:webView];
-}
-
-/**
- *  开始加载的进度数值
- *
- *  @param webView 当前使用的webView
- */
-- (void)startProgress:(WKWebView *)webView
-{
-    if (currentLoadProgress < MyInitialProgressValue)
-    {
-        [self.progressView setHidden:NO];
-        [self setprogress:MyInitialProgressValue webView:webView];
-    }
-}
-
-/**
- *  结束加载的进度数值
- *
- *  @param webView 当前使用的webView
- */
-- (void)completeProgress:(WKWebView *)webView
-{
-    [self setprogress:1.0 webView:webView];
-    [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(hideAndResetProgress) userInfo:nil repeats:NO];
-}
-
-- (void)incrementProgress:(WKWebView *)webView
-{
-    float progress = currentLoadProgress;
-    //NSLog(@"progress is %f",progress);
-    //float currentTimeMillis = [[NSDatedate]timeIntervalSince1970] * 1000;
-    
-    //NSLog(@"currentTimeMillis = %f", currentTimeMillis);
-    //float maxProgress = interactive ? MyFinalProgressValue : MyInteractiveProgressValue;
-    //float remainPercent = (float)loadingCount / (float)maxLoadCount;
-    
-    if (progress > 0.8) {
-        increament = 0.005;
-    }else if(progress > 0.3){
-        increament = 0.01;
-    }
-    progress += increament;
-    //progress = fmin(progress, maxProgress) + 0.01;
-    [self setprogress:progress webView:webView];
-    
-    if(progress < 0.95){
-        float seconds = progressInterval;
-        if(progress > 0.9){
-            seconds = 1;
-        }else if(progress > 0.8){
-            seconds = 0.5;
-        }
-        _timer = [NSTimer scheduledTimerWithTimeInterval:seconds target:self selector:@selector(incrementProgress:) userInfo:nil repeats:NO];
-    }
-
-}
-
-
-/**
- *  set方法，获取readonly的currentProgress数值
- *
- *  @return currentProgress
- */
--(CGFloat)loadProgress
-{
-    if (currentLoadProgress == 99)
-    {
-        return 0;
-    }
-    else
-    {
-        return currentLoadProgress;
+    }else{
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }
 
@@ -1898,4 +1818,4 @@ float increament = 0.02;
 }
 
 
-@end //CDVWKInAppBrowserViewController
+@end //CDVWKThemeableBrowserViewController

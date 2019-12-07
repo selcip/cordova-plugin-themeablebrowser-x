@@ -18,12 +18,12 @@
  */
 
 #import "CDVThemeableBrowser.h"
-#import "CDVInAppBrowserOptions.h"
-#import "CDVWKInAppBrowser.h"
+#import "CDVWKThemeableBrowserOptions.h"
+#import "CDVWKThemeableBrowser.h"
 #import <Cordova/CDVPluginResult.h>
 
 
-#pragma mark CDVInAppBrowser
+#pragma mark CDVWKThemeableBrowser
 
 @implementation CDVThemeableBrowser
 
@@ -42,49 +42,54 @@
         [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:@{@"type":@"loaderror", @"message": @"usewkwebview option specified but but no plugin that supplies a WKWebView engine is present"}] callbackId:command.callbackId];
         return;
     }
-   [[CDVWKInAppBrowser getInstance] open:command];
+   [[CDVWKThemeableBrowser getInstance] open:command];
 }
 
 - (void)close:(CDVInvokedUrlCommand*)command
 {
-    [[CDVWKInAppBrowser getInstance] close:command];
+    [[CDVWKThemeableBrowser getInstance] close:command];
+}
+
+- (void)reload:(CDVInvokedUrlCommand*)command
+{
+    [[CDVWKThemeableBrowser getInstance] reload:command];
 }
 
 
 - (void)show:(CDVInvokedUrlCommand*)command
 {
-     [[CDVWKInAppBrowser getInstance] show:command];
+     [[CDVWKThemeableBrowser getInstance] show:command];
 }
 
 - (void)hide:(CDVInvokedUrlCommand*)command
 {
-     [[CDVWKInAppBrowser getInstance] hide:command];
+     [[CDVWKThemeableBrowser getInstance] hide:command];
 }
 
 
 - (void)injectScriptCode:(CDVInvokedUrlCommand*)command
 {
-     [[CDVWKInAppBrowser getInstance] injectScriptCode:command];
+     [[CDVWKThemeableBrowser getInstance] injectScriptCode:command];
 }
 
 - (void)injectScriptFile:(CDVInvokedUrlCommand*)command
 {
-     [[CDVWKInAppBrowser getInstance] injectScriptFile:command];
+     [[CDVWKThemeableBrowser getInstance] injectScriptFile:command];
 }
 
 - (void)injectStyleCode:(CDVInvokedUrlCommand*)command
 {
-    [[CDVWKInAppBrowser getInstance] injectStyleCode:command];
+    [[CDVWKThemeableBrowser getInstance] injectStyleCode:command];
 }
 
 - (void)injectStyleFile:(CDVInvokedUrlCommand*)command
 {
-   [[CDVWKInAppBrowser getInstance] injectStyleFile:command];
+   [[CDVWKThemeableBrowser getInstance] injectStyleFile:command];
 }
 
 - (void)loadAfterBeforeload:(CDVInvokedUrlCommand*)command
 {
-    [[CDVWKInAppBrowser getInstance] loadAfterBeforeload:command];
+    [[CDVWKThemeableBrowser getInstance] loadAfterBeforeload:command];
 }
 
 
