@@ -23,7 +23,7 @@
 #import <Cordova/CDVPluginResult.h>
 
 
-#pragma mark CDVWKThemeableBrowser
+#pragma mark CDVThemeableBrowser
 
 @implementation CDVThemeableBrowser
 
