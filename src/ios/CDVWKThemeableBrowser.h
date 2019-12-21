@@ -72,7 +72,7 @@
 
 @property (nonatomic, strong) IBOutlet UIActivityIndicatorView* spinner;
 @property (nonatomic, strong) IBOutlet UIProgressView* progressView;
-@property (nonatomic, strong) IBOutlet UIToolbar* toolbar;
+@property (nonatomic, strong) IBOutlet UIView* toolbar;
 @property (nonatomic, strong) IBOutlet CDVWKThemeableBrowserUIDelegate* webViewUIDelegate;
 
 @property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
@@ -83,6 +83,9 @@
 @property (nonatomic) BOOL isDismiss;
 
 - (void)close;
+- (void)setWebViewFullscreen:(BOOL)show;
+- (void)setStatusBarStyle:(NSString *) style;
+- (void)setTitle:(NSString *) title;
 - (void)reload;
 - (void)navigateTo:(NSURL*)url;
 - (void)showLocationBar:(BOOL)show;
