@@ -49,6 +49,8 @@
         <source-file src="src/android/ThemeableBrowserDialog.java" target-dir="src/com/initialxy/cordova/themeablebrowser" />
         <source-file src="src/android/InAppChromeClient.java" target-dir="src/com/initialxy/cordova/themeablebrowser" />
         <source-file src="src/android/ThemeableBrowserUnmarshaller.java" target-dir="src/com/initialxy/cordova/themeablebrowser" />
+        <resource-file src="src/android/armeabi/libtbs.so" target="jniLibs/armeabi/libtbs.so"/> 
+        <lib-file src="src/android/x5-browser.jar" />
     </platform>
 
     <!-- ios -->
