@@ -28,7 +28,7 @@
         self.usewkwebview = NO;
         self.location = YES;
         self.closebuttoncaption = nil;
-        self.toolbarposition = @"bottom";
+        self.toolbarposition = @"top";
         self.cleardata = NO;
         self.clearcache = NO;
         self.clearsessioncache = NO;
